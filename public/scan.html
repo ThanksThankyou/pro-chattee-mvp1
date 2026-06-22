@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ChatteePro - QRスキャン</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="/js/jsQR.js"></script>
+</head>
+<body class="scan-page">
+
+  <!-- ヘッダー -->
+  <div class="scan-header">
+    <span class="scan-title">QRコードをスキャン</span>
+    <button class="scan-close" onclick="location.href='/'">×</button>
+  </div>
+
+  <!-- カメラ映像 -->
+  <video id="scanVideo" autoplay playsinline muted></video>
+
+  <!-- QRコードを合わせる枠 -->
+  <div class="scan-frame"></div>
+
+  <!-- 案内テキスト -->
+  <p class="scan-hint">カメラをQRコードに向けてください</p>
+
+  <!-- 解析用（非表示） -->
+  <canvas id="scanCanvas" style="display:none"></canvas>
+
+  <script>
+    const video  = document.getElementById('scanVideo');
+    const canvas = document.getElementById('scanCanvas');
+    const ctx    = canvas.getContext('2d');
+    let scanning = true;
+
+    // カメラ起動（スマホは背面カメラを優先）
+    navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment' }
+    }).then((stream) => {
+      video.srcObject = stream;
+      video.play();
+      requestAnimationFrame(tick);
+    }).catch(() => {
+      alert('カメラにアクセスできませんでした。\nブラウザの設定でカメラを許可してください。');
+      location.href = '/';
+    });
+
+    function tick() {
+      if (!scanning) return;
+
+      if (video.readyState === video.HAVE_ENOUGH_DATA) {
+        canvas.width  = video.videoWidth;
+        canvas.height = video.videoHeight;
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const code = jsQR(imageData.data, imageData.width, imageData.height);
+
+        if (code && code.data.includes('/room.html')) {
+          scanning = false;
+
+          // カメラを止める
+          video.srcObject.getTracks().forEach(t => t.stop());
+
+          // room.htmlへ遷移（roleをguestに変更）
+          const url = new URL(code.data);
+          url.searchParams.set('role', 'guest');
+          location.href = url.toString();
+          return;
+        }
+      }
+
+      requestAnimationFrame(tick);
+    }
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,29 @@
+# OSごとの不要ファイル
+.DS_Store
+Thumbs.db
+
+# node関連
+node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+
+# IDE/エディタ
+.vscode/
+*.code-workspace
+.claude/
+
+# ローカルの録音ファイルやログ
+*.wav
+*.mp3
+*.log
+
+# 環境変数
+.env
+
+# Cloudflare
+.wrangler/
+
+# バックアップ・旧バージョンファイル
+old/
+public/old/

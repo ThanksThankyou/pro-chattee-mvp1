@@ -1,0 +1,9 @@
+{
+  "name": "chatteepro",
+  "compatibility_date": "2024-09-23",
+  "pages_build_output_dir": "public",
+
+  // 環境変数はCloudflare Dashboardで設定してください
+  // Settings > Environment Variables に以下を追加:
+  // AMIVOICE_APPKEY = "your-amivoice-appkey"
+}

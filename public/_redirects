@@ -1,0 +1,4 @@
+# Cloudflare Pages リダイレクト設定
+# 未認証ユーザーへのroom.htmlアクセスはindex.htmlで処理（JS側でリダイレクト）
+/room.html /room.html 200
+/* /index.html 200

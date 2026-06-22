@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ChatteePro</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="start-page">
+
+  <div class="start-container">
+
+    <div class="start-header">
+      <h1>ChatteePro</h1>
+      <p class="start-tagline">難聴者のためのAIエージェント</p>
+      <p class="start-user-id">あなたのID: <strong id="userIdDisplay"></strong></p>
+    </div>
+
+    <div class="start-buttons">
+      <button id="startBtn" class="btn-start">トークを始める</button>
+      <button id="joinBtn"  class="btn-join">トークに参加する</button>
+    </div>
+
+    <div class="start-footer">
+      <a href="/terms.html">利用規約</a>
+      <p>© 2026 Clearwater Corporation</p>
+    </div>
+
+  </div>
+
+  <script type="module">
+    import { supabase } from '/js/supabaseConfig.js';
+
+    // User IDの取得（なければ自動生成してlocalStorageに保存）
+    function getUserId() {
+      let id = localStorage.getItem('chattee_user_id');
+      if (!id) {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        const rand = Array.from({ length: 4 }, () =>
+          chars[Math.floor(Math.random() * chars.length)]
+        ).join('');
+        id = 'USER-' + rand;
+        localStorage.setItem('chattee_user_id', id);
+      }
+      return id;
+    }
+
+    const userId = getUserId();
+    document.getElementById('userIdDisplay').textContent = userId;
+
+    // トークを始める → talk_roomsにルーム作成 → room.htmlへ
+    document.getElementById('startBtn').addEventListener('click', async () => {
+      const { data, error } = await supabase
+        .from('talk_rooms')
+        .insert({ host_user_id: userId })
+        .select('id')
+        .single();
+
+      if (error) {
+        alert('ルームの作成に失敗しました。');
+        console.error(error);
+        return;
+      }
+
+      window.location.href = `/room.html?role=host&id=${data.id}`;
+    });
+
+    // トークに参加する → QRスキャン画面へ
+    document.getElementById('joinBtn').addEventListener('click', () => {
+      window.location.href = '/scan.html';
+    });
+
+  </script>
+
+</body>
+</html>

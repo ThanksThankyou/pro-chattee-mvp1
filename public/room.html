@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ChatteePro</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="/js/qrcode.min.js"></script>
+</head>
+<body class="room-page">
+
+  <!-- ヘッダー -->
+  <header class="room-header">
+    <span class="header-logo">ChatteePro</span>
+    <button id="qrBtn" class="header-qr-btn" style="display:none">QRコード</button>
+  </header>
+
+  <!-- ステータスメッセージ -->
+  <div id="statusMsg" style="display:none"></div>
+
+  <!-- 会話エリア（パネルがここに追加される） -->
+  <div id="chatArea" class="chat-area"></div>
+
+  <!-- 下部コントロール（スマホ・PC共通） -->
+  <div class="room-controls">
+    <button id="micBtn" class="btn-mic">🎤 録音開始</button>
+    <div class="controls-row">
+      <textarea id="textInput" rows="1" placeholder="ここに入力（Enterで送信）"></textarea>
+      <button id="sendBtn" class="btn btn-send">送信</button>
+    </div>
+  </div>
+
+  <!-- ③ QRモーダル（ホストのみ使用） -->
+  <div id="qrModal" class="modal-overlay hidden">
+    <div class="modal">
+      <button id="modalClose" class="modal-close">×</button>
+      <div id="qrContainer"></div>
+      <p id="roomIdText" class="room-id-text"></p>
+      <hr class="modal-divider">
+      <p class="modal-invite-label">ユーザーIDで招待する</p>
+      <div class="modal-invite-row">
+        <input id="inviteInput" type="text" class="modal-invite-input" placeholder="例：USER-A1B2">
+        <button id="inviteBtn" class="btn-invite">招待する</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { startRecording, stopRecording, getIsRecording } from '/js/audio.js';
+    import { joinChannel, broadcastMessage, sendInvite, leaveChannel, buildJoinUrl } from '/js/room.js';
+    import { initScrollBehavior, showStatus, hideStatus, updateMicButton } from '/js/ui.js';
+
+    // URLパラメータ取得
+    const params  = new URLSearchParams(location.search);
+    const roomId  = params.get('id');
+    const role    = params.get('role'); // 'host' or 'guest'
+
+    // roomId がない場合はトップへ戻す
+    if (!roomId) { location.href = '/'; }
+
+    // USER-ID取得
+    function getUserId() {
+      let id = localStorage.getItem('chattee_user_id');
+      if (!id) {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        const rand = Array.from({ length: 4 }, () =>
+          chars[Math.floor(Math.random() * chars.length)]
+        ).join('');
+        id = 'USER-' + rand;
+        localStorage.setItem('chattee_user_id', id);
+      }
+      return id;
+    }
+
+    const userId = getUserId();
+
+    async function init() {
+      initScrollBehavior();
+
+      // AmiVoice APIキー取得（Cloudflare Function経由）
+      let appKey = null;
+      try {
+        const res = await fetch('/api/amivoice-key');
+        if (!res.ok) throw new Error();
+        appKey = (await res.json()).key;
+      } catch {
+        showStatus('AmiVoice APIキーの取得に失敗しました', 'error');
+      }
+
+      // Supabase Realtimeチャンネルに参加
+      joinChannel(roomId, userId);
+
+      // ホストのみQRボタンを表示
+      if (role === 'host') {
+        document.getElementById('qrBtn').style.display = 'block';
+      }
+
+      // --- マイクボタン ---
+      document.getElementById('micBtn').addEventListener('click', async () => {
+        if (getIsRecording()) {
+          stopRecording();
+          updateMicButton(false);
+        } else {
+          if (!appKey) { showStatus('APIキーが取得できていません', 'error'); return; }
+          try {
+            await startRecording(appKey);
+            updateMicButton(true);
+          } catch {
+            showStatus('マイクにアクセスできません', 'error');
+          }
+        }
+      });
+
+      // --- テキスト入力 ---
+      const textInput = document.getElementById('textInput');
+      const sendBtn   = document.getElementById('sendBtn');
+
+      const sendText = () => {
+        const text = textInput.value.trim();
+        if (!text) return;
+        broadcastMessage({ text, senderId: userId, isSelf: true });
+        textInput.value = '';
+        textInput.focus();
+      };
+
+      sendBtn.addEventListener('click', sendText);
+      textInput.addEventListener('keydown', (e) => {
+        // IME変換中のEnterは無視・Shiftで改行
+        if (e.key === 'Enter' && !e.isComposing && !e.shiftKey) {
+          e.preventDefault();
+          sendText();
+        }
+      });
+
+      // --- QRモーダル開閉 ---
+      let qrGenerated = false;
+      document.getElementById('qrBtn').addEventListener('click', () => {
+        if (!qrGenerated) {
+          new QRCode(document.getElementById('qrContainer'), {
+            text:   buildJoinUrl(roomId),
+            width:  220,
+            height: 220,
+          });
+          document.getElementById('roomIdText').textContent = `ルームID: ${roomId.slice(0, 8)}`;
+          qrGenerated = true;
+        }
+        document.getElementById('qrModal').classList.remove('hidden');
+      });
+      document.getElementById('modalClose').addEventListener('click', () => {
+        document.getElementById('qrModal').classList.add('hidden');
+      });
+      // モーダル外クリックで閉じる
+      document.getElementById('qrModal').addEventListener('click', (e) => {
+        if (e.target === e.currentTarget) {
+          e.currentTarget.classList.add('hidden');
+        }
+      });
+
+      // --- 招待ボタン ---
+      document.getElementById('inviteBtn').addEventListener('click', () => {
+        const targetId = document.getElementById('inviteInput').value.trim().toUpperCase();
+        if (!targetId) return;
+        sendInvite(targetId, roomId, userId);
+        document.getElementById('inviteInput').value = '';
+        showStatus(`${targetId} を招待しました`, 'success');
+        setTimeout(hideStatus, 3000);
+      });
+
+      // --- AmiVoiceイベント ---
+      window.addEventListener('amivoice:stop',  () => updateMicButton(false));
+      window.addEventListener('amivoice:error', () => {
+        updateMicButton(false);
+        showStatus('音声認識エラーが発生しました', 'error');
+      });
+
+      // --- ページ離脱時のクリーンアップ ---
+      window.addEventListener('beforeunload', () => {
+        if (getIsRecording()) stopRecording();
+        leaveChannel();
+      });
+    }
+
+    init();
+  </script>
+
+</body>
+</html>
