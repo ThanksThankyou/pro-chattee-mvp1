@@ -35,11 +35,7 @@
     function getUserId() {
       let id = localStorage.getItem('chattee_user_id');
       if (!id) {
-        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-        const rand = Array.from({ length: 4 }, () =>
-          chars[Math.floor(Math.random() * chars.length)]
-        ).join('');
-        id = 'USER-' + rand;
+        id = Array.from({ length: 8 }, () => Math.floor(Math.random() * 10)).join('');
         localStorage.setItem('chattee_user_id', id);
       }
       return id;
