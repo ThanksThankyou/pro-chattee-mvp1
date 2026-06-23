@@ -43,9 +43,15 @@ function enterEditMode(panel, text, isFinal, panelId) {
   ta.focus();
   ta.setSelectionRange(ta.value.length, ta.value.length);
 
+  const cleanup = () => {
+    document.removeEventListener('touchstart', onOutsideTap, true);
+    document.removeEventListener('mousedown',  onOutsideTap, true);
+  };
+
   const commit = () => {
     if (committed) return;
     committed = true;
+    cleanup();
     const newText = ta.value.trim() || text;
     const newPanel = makePanel(newText, true, panelId);
     ta.replaceWith(newPanel);
@@ -56,6 +62,13 @@ function enterEditMode(panel, text, isFinal, panelId) {
     }
   };
 
+  // テキストエリア外タップで確定（スマホで blur が発火しない場合の対策）
+  const onOutsideTap = (e) => {
+    if (e.target !== ta) commit();
+  };
+  document.addEventListener('touchstart', onOutsideTap, true);
+  document.addEventListener('mousedown',  onOutsideTap, true);
+
   ta.addEventListener('blur', commit);
   ta.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !e.isComposing && !e.shiftKey) {
@@ -64,6 +77,7 @@ function enterEditMode(panel, text, isFinal, panelId) {
     }
     if (e.key === 'Escape') {
       committed = true;
+      cleanup();
       const restored = makePanel(text, isFinal, panelId);
       ta.replaceWith(restored);
     }
