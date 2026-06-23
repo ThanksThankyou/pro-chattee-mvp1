@@ -16,6 +16,10 @@
   --font: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif;
 }
 
+html {
+  height: -webkit-fill-available;
+}
+
 html, body {
   height: 100%;
   background: var(--bg);
@@ -246,6 +250,8 @@ html, body {
   display: flex;
   flex-direction: column;
   height: 100vh;
+  height: 100dvh;
+  height: -webkit-fill-available;
   overflow: hidden;
 }
 
