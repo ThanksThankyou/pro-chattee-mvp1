@@ -51,6 +51,10 @@ export async function startAmiVoice(appKey, engine = '-a-general') {
   ws.binaryType = 'arraybuffer';
 
   ws.onopen = () => {
+    // 新しい録音セッション開始時にパネル蓄積をリセット
+    clearTimeout(panelResetTimer);
+    resetActivePanel();
+
     const trimmedKey = appKey.trim();
     // ChatteePro Phase1: 話者区別なし（1対1・シンプル設定）
     const wsCmd = `s 16k ${engine} authorization=${trimmedKey} segmenterProperties="powerThreshold=10000 threshold=9000"`;
@@ -101,9 +105,10 @@ export async function startAmiVoice(appKey, engine = '-a-general') {
         applyEdit(activePanelId, activeText);
         broadcastEdit({ panelId: activePanelId, newText: activeText });
       } else {
-        // 新しいパネルを作成
+        // 新しいパネルを作成（panelIdを先に確定してから渡す）
+        activePanelId = crypto.randomUUID();
         activeText    = text;
-        activePanelId = broadcastMessage({ text, senderId: userId, isSelf: true });
+        broadcastMessage({ text, senderId: userId, isSelf: true, panelId: activePanelId });
       }
 
       // 2秒後にパネルを閉じる（次の発言は新しいパネル）
@@ -119,8 +124,7 @@ export async function startAmiVoice(appKey, engine = '-a-general') {
   ws.onclose = () => {
     removeTempBubble();
     tempBubble = null;
-    clearTimeout(panelResetTimer);
-    resetActivePanel(); // 次回録音開始時は新しいパネルから
+    // リセットは次回onopen時に行う（瞬断でも蓄積中パネルを維持するため）
     window.dispatchEvent(new CustomEvent('amivoice:stop'));
   };
 }
