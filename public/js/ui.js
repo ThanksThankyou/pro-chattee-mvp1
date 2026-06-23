@@ -198,10 +198,10 @@ export function updateMicButton(isRecording) {
   const btn = document.getElementById('micBtn');
   if (!btn) return;
   if (isRecording) {
-    btn.textContent = '■ 停止';
+    btn.textContent = '■トーク停止';
     btn.classList.add('recording');
   } else {
-    btn.textContent = '🎤 録音開始';
+    btn.textContent = '▶トーク開始';
     btn.classList.remove('recording');
   }
 }
