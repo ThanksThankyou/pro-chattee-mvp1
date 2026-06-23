@@ -584,6 +584,9 @@ html, body {
   display: block;
 }
 
+#scanVideo::-webkit-media-controls { display: none !important; }
+#scanVideo::-webkit-media-controls-overlay-play-button { display: none !important; }
+
 .scan-frame {
   position: absolute;
   top: 50%;
