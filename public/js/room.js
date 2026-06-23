@@ -22,6 +22,7 @@ export function joinChannel(roomId, userId) {
         senderId: payload.senderId,
         isSelf:   false,
         isFinal:  true,
+        panelId:  payload.panelId,
       });
     })
     .subscribe();
@@ -31,19 +32,17 @@ export function joinChannel(roomId, userId) {
 export function broadcastMessage({ text, senderId, isSelf = false }) {
   if (!channel || !text?.trim()) return;
 
+  const panelId = crypto.randomUUID();
+
   // 自分の画面には即時表示（送信と同時）
   if (isSelf) {
-    addBubble({ text, senderId, isSelf: true, isFinal: true });
+    addBubble({ text, senderId, isSelf: true, isFinal: true, panelId });
   }
 
   channel.send({
     type:    'broadcast',
     event:   'message',
-    payload: {
-      text,
-      senderId,
-      ts: Date.now(),
-    },
+    payload: { text, senderId, ts: Date.now(), panelId },
   });
 }
 

@@ -1,4 +1,4 @@
-import { addBubble, createTempBubble, updateTempBubble, removeTempBubble } from './ui.js';
+import { createTempBubble, updateTempBubble, removeTempBubble } from './ui.js';
 import { broadcastMessage } from './room.js';
 
 function decodeUnicode(str) {
@@ -86,12 +86,10 @@ export async function startAmiVoice(appKey, engine = '-a-general') {
       const userId = localStorage.getItem('chattee_user_id') || '';
       if (blocks.length > 0) {
         for (const block of blocks) {
-          addBubble({ text: block.text, senderId: userId, isSelf: true, isFinal: true });
-          broadcastMessage({ text: block.text, senderId: userId });
+          broadcastMessage({ text: block.text, senderId: userId, isSelf: true });
         }
       } else if (text) {
-        addBubble({ text, senderId: userId, isSelf: true, isFinal: true });
-        broadcastMessage({ text, senderId: userId });
+        broadcastMessage({ text, senderId: userId, isSelf: true });
       }
     }
   };

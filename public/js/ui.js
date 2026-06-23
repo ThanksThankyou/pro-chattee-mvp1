@@ -81,11 +81,11 @@ function makePanel(text, isFinal, panelId) {
 
 // パネル1件追加
 // isSelf=true → 右（自分）、false → 左（相手）
-export function addBubble({ text, isSelf = false, senderId = '', isFinal = true }) {
+export function addBubble({ text, isSelf = false, senderId = '', isFinal = true, panelId = null }) {
   const area = document.getElementById('chatArea');
   if (!area || !text?.trim()) return;
 
-  const panelId = crypto.randomUUID();
+  if (!panelId) panelId = crypto.randomUUID();
 
   const wrapper = document.createElement('div');
   wrapper.classList.add('panel-wrapper', isSelf ? 'panel-right' : 'panel-left');
