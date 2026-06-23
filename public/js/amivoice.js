@@ -39,7 +39,7 @@ let tempBubble = null;
 let activePanelId   = null;
 let activeText      = '';
 let panelResetTimer = null;
-const PANEL_RESET_MS = 2000; // 2秒無音でパネルを「閉じる」
+const PANEL_RESET_MS = 3000; // 3秒無音でパネルを「閉じる」
 
 function resetActivePanel() {
   activePanelId = null;
@@ -84,10 +84,15 @@ export async function startAmiVoice(appKey, engine = '-a-general') {
       return;
     }
 
-    // 部分認識（U）→ 仮表示
+    // 部分認識（U）→ 仮表示 ＋ 発話中はパネルを閉じない
     if (msgType === 'U') {
       if (!tempBubble) tempBubble = createTempBubble();
       updateTempBubble(tempBubble, text);
+      // 発話継続中はタイマーをリセット（U が来ている間は新パネルを作らない）
+      if (activePanelId) {
+        clearTimeout(panelResetTimer);
+        panelResetTimer = setTimeout(resetActivePanel, PANEL_RESET_MS);
+      }
     }
 
     // 確定認識（A/R）→ 同一ユーザーのパネルに蓄積、2秒無音で閉じる
