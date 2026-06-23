@@ -29,12 +29,12 @@ export function joinChannel(roomId, userId) {
 }
 
 // テキストをbroadcast（DBには保存しない・Phase1保存なし設計）
-export function broadcastMessage({ text, senderId, isSelf = false }) {
-  if (!channel || !text?.trim()) return;
+// 生成した panelId を返す（音声パネル蓄積で使用）
+export function broadcastMessage({ text, senderId, isSelf = false, panelId = null }) {
+  if (!channel || !text?.trim()) return null;
 
-  const panelId = crypto.randomUUID();
+  if (!panelId) panelId = crypto.randomUUID();
 
-  // 自分の画面には即時表示（送信と同時）
   if (isSelf) {
     addBubble({ text, senderId, isSelf: true, isFinal: true, panelId });
   }
@@ -44,6 +44,8 @@ export function broadcastMessage({ text, senderId, isSelf = false }) {
     event:   'message',
     payload: { text, senderId, ts: Date.now(), panelId },
   });
+
+  return panelId;
 }
 
 // PCへの招待通知をbroadcast（個人チャンネル経由）

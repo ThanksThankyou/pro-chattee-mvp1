@@ -1,5 +1,5 @@
-import { createTempBubble, updateTempBubble, removeTempBubble } from './ui.js';
-import { broadcastMessage } from './room.js';
+import { createTempBubble, updateTempBubble, removeTempBubble, applyEdit } from './ui.js';
+import { broadcastMessage, broadcastEdit } from './room.js';
 
 function decodeUnicode(str) {
   try {
@@ -34,6 +34,17 @@ function buildSpeakerBlocks(tokens) {
 
 let ws = null;
 let tempBubble = null;
+
+// 同一ユーザーの音声をひとつのパネルに蓄積する
+let activePanelId   = null;
+let activeText      = '';
+let panelResetTimer = null;
+const PANEL_RESET_MS = 2000; // 2秒無音でパネルを「閉じる」
+
+function resetActivePanel() {
+  activePanelId = null;
+  activeText    = '';
+}
 
 export async function startAmiVoice(appKey, engine = '-a-general') {
   ws = new WebSocket('wss://acp-api.amivoice.com/v1/nolog/');
@@ -75,22 +86,28 @@ export async function startAmiVoice(appKey, engine = '-a-general') {
       updateTempBubble(tempBubble, text);
     }
 
-    // 確定認識（A/R）→ 確定表示 + broadcast
+    // 確定認識（A/R）→ 同一ユーザーのパネルに蓄積、2秒無音で閉じる
     if (msgType === 'A' || msgType === 'R') {
       removeTempBubble();
       tempBubble = null;
-
-      const tokens = parsed.results?.[0]?.tokens || [];
-      const blocks = buildSpeakerBlocks(tokens);
+      if (!text) return;
 
       const userId = localStorage.getItem('chattee_user_id') || '';
-      if (blocks.length > 0) {
-        for (const block of blocks) {
-          broadcastMessage({ text: block.text, senderId: userId, isSelf: true });
-        }
-      } else if (text) {
-        broadcastMessage({ text, senderId: userId, isSelf: true });
+      clearTimeout(panelResetTimer);
+
+      if (activePanelId) {
+        // 既存パネルにテキストを追加して全端末に同期
+        activeText += text;
+        applyEdit(activePanelId, activeText);
+        broadcastEdit({ panelId: activePanelId, newText: activeText });
+      } else {
+        // 新しいパネルを作成
+        activeText    = text;
+        activePanelId = broadcastMessage({ text, senderId: userId, isSelf: true });
       }
+
+      // 2秒後にパネルを閉じる（次の発言は新しいパネル）
+      panelResetTimer = setTimeout(resetActivePanel, PANEL_RESET_MS);
     }
   };
 
@@ -102,6 +119,8 @@ export async function startAmiVoice(appKey, engine = '-a-general') {
   ws.onclose = () => {
     removeTempBubble();
     tempBubble = null;
+    clearTimeout(panelResetTimer);
+    resetActivePanel(); // 次回録音開始時は新しいパネルから
     window.dispatchEvent(new CustomEvent('amivoice:stop'));
   };
 }

@@ -152,7 +152,10 @@ export function applyEdit(panelId, newText) {
   const wrapper = document.querySelector(`[data-panel-id="${panelId}"]`);
   if (!wrapper) return;
   const panel = wrapper.querySelector('.panel');
-  if (panel) panel.textContent = newText;
+  if (panel) {
+    panel.textContent = newText;
+    scrollToBottom();
+  }
 }
 
 // 仮パネル（音声認識途中・右側に表示）
