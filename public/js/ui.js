@@ -53,7 +53,13 @@ export function addBubble({ text, isSelf = false, senderId = '', isFinal = true 
   const ts = document.createElement('div');
   ts.classList.add('panel-ts');
   const now = new Date();
-  ts.textContent = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+  const yyyy = now.getFullYear();
+  const mm   = (now.getMonth()+1).toString().padStart(2,'0');
+  const dd   = now.getDate().toString().padStart(2,'0');
+  const hh   = now.getHours().toString().padStart(2,'0');
+  const mi   = now.getMinutes().toString().padStart(2,'0');
+  const ss   = now.getSeconds().toString().padStart(2,'0');
+  ts.textContent = `${yyyy}/${mm}/${dd} ${hh}:${mi}:${ss}`;
 
   wrapper.appendChild(sender);
   wrapper.appendChild(panel);
