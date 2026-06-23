@@ -79,14 +79,14 @@ function makePanel(text, isFinal, panelId) {
 
   // PC：ダブルクリック
   panel.addEventListener('dblclick', () => {
-    enterEditMode(panel, text, isFinal, panelId);
+    enterEditMode(panel, panel.textContent, isFinal, panelId);
   });
 
   // スマホ：長押し（500ms）
   let pressTimer = null;
   panel.addEventListener('touchstart', () => {
     pressTimer = setTimeout(() => {
-      enterEditMode(panel, text, isFinal, panelId);
+      enterEditMode(panel, panel.textContent, isFinal, panelId);
     }, 500);
   }, { passive: true });
   panel.addEventListener('touchend',  () => clearTimeout(pressTimer), { passive: true });
