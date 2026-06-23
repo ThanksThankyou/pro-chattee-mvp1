@@ -8,6 +8,13 @@
 </head>
 <body class="start-page">
 
+  <!-- 招待通知バナー -->
+  <div id="inviteBanner" class="invite-banner hidden">
+    <p id="inviteMsg" class="invite-banner-msg"></p>
+    <button id="inviteJoinBtn" class="invite-banner-btn">参加する</button>
+    <button id="inviteDismissBtn" class="invite-banner-dismiss">✕</button>
+  </div>
+
   <div class="start-container">
 
     <div class="start-header">
@@ -64,6 +71,29 @@
     // トークに参加する → QRスキャン画面へ
     document.getElementById('joinBtn').addEventListener('click', () => {
       window.location.href = '/scan.html';
+    });
+
+    // 招待通知リスナー（個人チャンネル）
+    let pendingRoomId = null;
+    supabase
+      .channel(`user:${userId}`)
+      .on('broadcast', { event: 'invite' }, ({ payload }) => {
+        pendingRoomId = payload.roomId;
+        document.getElementById('inviteMsg').textContent =
+          `${payload.fromUserId} さんからトークルームに招待されました`;
+        document.getElementById('inviteBanner').classList.remove('hidden');
+      })
+      .subscribe();
+
+    document.getElementById('inviteJoinBtn').addEventListener('click', () => {
+      if (pendingRoomId) {
+        window.location.href = `/room.html?role=guest&id=${pendingRoomId}`;
+      }
+    });
+
+    document.getElementById('inviteDismissBtn').addEventListener('click', () => {
+      document.getElementById('inviteBanner').classList.add('hidden');
+      pendingRoomId = null;
     });
 
   </script>

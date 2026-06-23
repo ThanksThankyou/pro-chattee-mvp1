@@ -25,6 +25,51 @@ html, body {
   line-height: 1.6;
 }
 
+/* ===== 招待通知バナー ===== */
+.invite-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: var(--accent);
+  color: #fff;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 200;
+}
+
+.invite-banner.hidden { display: none; }
+
+.invite-banner-msg {
+  flex: 1;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.invite-banner-btn {
+  background: #fff;
+  color: var(--accent);
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-family: var(--font);
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.invite-banner-dismiss {
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.8);
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 4px;
+}
+
 /* ===== ① 初期画面 ===== */
 .start-page {
   display: flex;

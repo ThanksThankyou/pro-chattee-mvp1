@@ -12,7 +12,7 @@
   <!-- ヘッダー -->
   <header class="room-header">
     <span class="header-logo">ChatteePro</span>
-    <button id="qrBtn" class="header-qr-btn" style="display:none">📷 QRコード</button>
+    <button id="qrBtn" class="header-qr-btn">📷 QRコード</button>
     <button id="profileBtn" class="header-profile-btn">👤</button>
   </header>
 
@@ -97,11 +97,6 @@
 
       // Supabase Realtimeチャンネルに参加
       joinChannel(roomId, userId);
-
-      // ホストのみQRボタンを表示
-      if (role === 'host') {
-        document.getElementById('qrBtn').style.display = 'block';
-      }
 
       // --- マイクボタン ---
       document.getElementById('micBtn').addEventListener('click', async () => {
