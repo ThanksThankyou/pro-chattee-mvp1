@@ -11,7 +11,7 @@
 
   <!-- ヘッダー -->
   <header class="room-header">
-    <span class="header-logo">ChatteePro</span>
+    <span class="header-logo">ChatteePro <span id="wakeLockIndicator" class="wakelock-indicator" title="スリープ防止">🔅</span></span>
     <button id="qrBtn" class="header-qr-btn">📷 QRコード</button>
     <button id="profileBtn" class="header-profile-btn">👤</button>
   </header>
@@ -198,17 +198,41 @@
       });
 
       // --- 画面スリープ防止 ---
+      // iOSはユーザー操作後でないとWakeLockを取得できない制約があるため
+      // 即時取得 + 最初のタップ後に再取得 の二段構えにする
       let wakeLock = null;
+
+      const updateWakeLockUI = (active) => {
+        const el = document.getElementById('wakeLockIndicator');
+        if (!el) return;
+        el.textContent = active ? '🔆' : '🔅';
+        el.title = active ? 'スリープ防止：有効' : 'スリープ防止：無効（タップして有効化）';
+        el.style.opacity = active ? '1' : '0.4';
+      };
+
       const requestWakeLock = async () => {
+        if (!('wakeLock' in navigator)) return; // 非対応ブラウザはスキップ
+        if (wakeLock && !wakeLock.released) return; // 既に有効
         try {
           wakeLock = await navigator.wakeLock.request('screen');
-        } catch {}
+          updateWakeLockUI(true);
+          wakeLock.addEventListener('release', () => updateWakeLockUI(false));
+        } catch {
+          updateWakeLockUI(false);
+        }
       };
+
+      // 即時試行（Android Chrome等は成功する）
       requestWakeLock();
+      // 最初のユーザー操作後に再試行（iOSはこれが必要）
+      document.addEventListener('click',      requestWakeLock, { once: true });
+      document.addEventListener('touchstart', requestWakeLock, { once: true });
       // タブが再表示されたら再取得
       document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'visible') requestWakeLock();
       });
+      // インジケータータップでも手動取得できる
+      document.getElementById('wakeLockIndicator')?.addEventListener('click', requestWakeLock);
 
       // --- ページ離脱時のクリーンアップ ---
       window.addEventListener('beforeunload', () => {
