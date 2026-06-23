@@ -1,5 +1,5 @@
 import { supabase } from './supabaseConfig.js';
-import { addBubble } from './ui.js';
+import { addBubble, applyEdit } from './ui.js';
 
 let channel = null;
 let myUserId = null;
@@ -10,6 +10,9 @@ export function joinChannel(roomId, userId) {
 
   channel = supabase
     .channel(`room:${roomId}`)
+    .on('broadcast', { event: 'edit' }, ({ payload }) => {
+      applyEdit(payload.panelId, payload.newText);
+    })
     .on('broadcast', { event: 'message' }, ({ payload }) => {
       // 自分が送ったメッセージは表示しない（送信時にすでに表示済み）
       if (payload.senderId === myUserId) return;
@@ -56,6 +59,16 @@ export function sendInvite(targetUserId, roomId, fromUserId) {
     });
     // 送信後に即チャンネルを閉じる
     setTimeout(() => supabase.removeChannel(inviteChannel), 2000);
+  });
+}
+
+// 編集内容をbroadcast
+export function broadcastEdit({ panelId, newText }) {
+  if (!channel) return;
+  channel.send({
+    type:    'broadcast',
+    event:   'edit',
+    payload: { panelId, newText },
   });
 }
 

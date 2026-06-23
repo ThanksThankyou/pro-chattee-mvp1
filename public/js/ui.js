@@ -32,23 +32,70 @@ export function initScrollBehavior() {
   });
 }
 
+// パネル本文を生成（ダブルクリック編集つき）
+function makePanel(text, isFinal, panelId) {
+  const panel = document.createElement('div');
+  panel.classList.add('panel');
+  panel.textContent = text;
+  if (!isFinal) panel.classList.add('panel-partial');
+
+  panel.addEventListener('dblclick', () => {
+    let committed = false;
+
+    const ta = document.createElement('textarea');
+    ta.classList.add('panel-edit-textarea');
+    ta.value = text;
+    panel.replaceWith(ta);
+    ta.focus();
+    ta.setSelectionRange(ta.value.length, ta.value.length);
+
+    const commit = () => {
+      if (committed) return;
+      committed = true;
+      const newText = ta.value.trim() || text;
+      const newPanel = makePanel(newText, true, panelId);
+      ta.replaceWith(newPanel);
+      if (newText !== text) {
+        window.dispatchEvent(new CustomEvent('panel:edit', {
+          detail: { panelId, newText }
+        }));
+      }
+    };
+
+    ta.addEventListener('blur', commit);
+    ta.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.isComposing && !e.shiftKey) {
+        e.preventDefault();
+        commit();
+      }
+      if (e.key === 'Escape') {
+        committed = true; // blurで二重発火しないように
+        const restored = makePanel(text, isFinal, panelId);
+        ta.replaceWith(restored);
+      }
+    });
+  });
+
+  return panel;
+}
+
 // パネル1件追加
 // isSelf=true → 右（自分）、false → 左（相手）
 export function addBubble({ text, isSelf = false, senderId = '', isFinal = true }) {
   const area = document.getElementById('chatArea');
   if (!area || !text?.trim()) return;
 
+  const panelId = crypto.randomUUID();
+
   const wrapper = document.createElement('div');
   wrapper.classList.add('panel-wrapper', isSelf ? 'panel-right' : 'panel-left');
+  wrapper.dataset.panelId = panelId;
 
   const sender = document.createElement('div');
   sender.classList.add('panel-sender');
   sender.textContent = 'ユーザーID:' + senderId;
 
-  const panel = document.createElement('div');
-  panel.classList.add('panel');
-  panel.textContent = text.trim();
-  if (!isFinal) panel.classList.add('panel-partial');
+  const panel = makePanel(text.trim(), isFinal, panelId);
 
   const ts = document.createElement('div');
   ts.classList.add('panel-ts');
@@ -68,6 +115,14 @@ export function addBubble({ text, isSelf = false, senderId = '', isFinal = true 
   scrollToBottom();
 
   return wrapper;
+}
+
+// 他端末からの編集を受信してパネルを更新
+export function applyEdit(panelId, newText) {
+  const wrapper = document.querySelector(`[data-panel-id="${panelId}"]`);
+  if (!wrapper) return;
+  const panel = wrapper.querySelector('.panel');
+  if (panel) panel.textContent = newText;
 }
 
 // 仮パネル（音声認識途中・右側に表示）

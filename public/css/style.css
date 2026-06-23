@@ -350,6 +350,23 @@ html, body {
 .panel-left  .panel { background: var(--panel-other); border-left: 3px solid var(--border); }
 .panel-right .panel { background: var(--panel-self);  border-right: 3px solid var(--accent); }
 
+.panel:hover { cursor: text; opacity: 0.9; }
+
+.panel-edit-textarea {
+  width: 100%;
+  min-height: 60px;
+  background: var(--bg);
+  border: 2px solid var(--accent);
+  border-radius: 4px;
+  padding: 8px 12px;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 18px;
+  line-height: 1.5;
+  resize: vertical;
+  outline: none;
+}
+
 .panel-partial {
   opacity: 0.6;
   font-style: italic;

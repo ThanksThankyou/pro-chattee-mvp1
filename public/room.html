@@ -59,7 +59,7 @@
 
   <script type="module">
     import { startRecording, stopRecording, getIsRecording } from '/js/audio.js';
-    import { joinChannel, broadcastMessage, sendInvite, leaveChannel, buildJoinUrl } from '/js/room.js';
+    import { joinChannel, broadcastMessage, broadcastEdit, sendInvite, leaveChannel, buildJoinUrl } from '/js/room.js';
     import { initScrollBehavior, showStatus, hideStatus, updateMicButton } from '/js/ui.js';
 
     // URLパラメータ取得
@@ -183,6 +183,11 @@
       document.getElementById('logoutBtn').addEventListener('click', () => {
         localStorage.removeItem('chattee_user_id');
         location.href = '/';
+      });
+
+      // --- パネル編集の同期 ---
+      window.addEventListener('panel:edit', (e) => {
+        broadcastEdit({ panelId: e.detail.panelId, newText: e.detail.newText });
       });
 
       // --- AmiVoiceイベント ---
