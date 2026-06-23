@@ -43,7 +43,7 @@ export function addBubble({ text, isSelf = false, senderId = '', isFinal = true 
 
   const sender = document.createElement('div');
   sender.classList.add('panel-sender');
-  sender.textContent = senderId;
+  sender.textContent = 'ユーザーID: ' + senderId;
 
   const panel = document.createElement('div');
   panel.classList.add('panel');
