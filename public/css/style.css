@@ -341,7 +341,7 @@ html, body {
 .panel {
   padding: 12px 16px;
   border-radius: 4px;
-  font-size: 1.5rem;
+  font-size: 18px;
   line-height: 1.5;
   white-space: pre-wrap;
   word-break: break-all;
@@ -642,7 +642,7 @@ html, body {
 
 /* ===== スマホ最適化 ===== */
 @media (max-width: 600px) {
-  .panel { font-size: 1.8rem; }
+  .panel { font-size: 18px; }
   .panel-wrapper { max-width: 90%; }
   #qrCanvas { width: 200px !important; height: 200px !important; }
 }
