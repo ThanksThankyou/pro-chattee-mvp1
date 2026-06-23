@@ -12,7 +12,8 @@
   <!-- ヘッダー -->
   <header class="room-header">
     <span class="header-logo">ChatteePro</span>
-    <button id="qrBtn" class="header-qr-btn" style="display:none">QRコード</button>
+    <button id="qrBtn" class="header-qr-btn" style="display:none">📷 QRコード</button>
+    <button id="profileBtn" class="header-profile-btn">👤</button>
   </header>
 
   <!-- ステータスメッセージ -->
@@ -39,9 +40,20 @@
       <hr class="modal-divider">
       <p class="modal-invite-label">ユーザーIDで招待する</p>
       <div class="modal-invite-row">
-        <input id="inviteInput" type="text" class="modal-invite-input" placeholder="例：USER-A1B2">
+        <input id="inviteInput" type="text" inputmode="numeric" class="modal-invite-input" placeholder="相手のユーザーID（例：28374156）">
         <button id="inviteBtn" class="btn-invite">招待する</button>
       </div>
+    </div>
+  </div>
+
+  <!-- プロフィールモーダル -->
+  <div id="profileModal" class="modal-overlay hidden">
+    <div class="modal">
+      <button id="profileClose" class="modal-close">×</button>
+      <p class="modal-invite-label">あなたのID</p>
+      <p id="profileUserId" class="profile-user-id"></p>
+      <hr class="modal-divider">
+      <button id="logoutBtn" class="btn btn-danger" style="width:100%">ログアウト</button>
     </div>
   </div>
 
@@ -160,6 +172,22 @@
         document.getElementById('inviteInput').value = '';
         showStatus(`${targetId} を招待しました`, 'success');
         setTimeout(hideStatus, 3000);
+      });
+
+      // --- プロフィールモーダル ---
+      document.getElementById('profileBtn').addEventListener('click', () => {
+        document.getElementById('profileUserId').textContent = userId;
+        document.getElementById('profileModal').classList.remove('hidden');
+      });
+      document.getElementById('profileClose').addEventListener('click', () => {
+        document.getElementById('profileModal').classList.add('hidden');
+      });
+      document.getElementById('profileModal').addEventListener('click', (e) => {
+        if (e.target === e.currentTarget) e.currentTarget.classList.add('hidden');
+      });
+      document.getElementById('logoutBtn').addEventListener('click', () => {
+        localStorage.removeItem('chattee_user_id');
+        location.href = '/';
       });
 
       // --- AmiVoiceイベント ---
