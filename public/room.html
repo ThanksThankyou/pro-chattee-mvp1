@@ -11,7 +11,7 @@
 
   <!-- ヘッダー -->
   <header class="room-header">
-    <span class="header-logo">ChatteePro <span id="wakeLockIndicator" class="wakelock-indicator" title="スリープ防止">🔅</span></span>
+    <span class="header-logo">ChatteePro <span id="wakeLockIndicator" class="wakelock-indicator" title="スリープ防止">💤</span></span>
     <button id="qrBtn" class="header-qr-btn">📷 QRコード</button>
     <button id="profileBtn" class="header-profile-btn">👤</button>
   </header>
@@ -205,9 +205,9 @@
       const updateWakeLockUI = (active) => {
         const el = document.getElementById('wakeLockIndicator');
         if (!el) return;
-        el.textContent = active ? '🔆' : '🔅';
+        el.textContent = active ? '☀️' : '💤';
         el.title = active ? 'スリープ防止：有効' : 'スリープ防止：無効（タップして有効化）';
-        el.style.opacity = active ? '1' : '0.4';
+        el.style.opacity = active ? '1' : '0.5';
       };
 
       const requestWakeLock = async () => {
