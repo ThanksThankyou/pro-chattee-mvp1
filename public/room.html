@@ -197,10 +197,24 @@
         showStatus('音声認識エラーが発生しました', 'error');
       });
 
+      // --- 画面スリープ防止 ---
+      let wakeLock = null;
+      const requestWakeLock = async () => {
+        try {
+          wakeLock = await navigator.wakeLock.request('screen');
+        } catch {}
+      };
+      requestWakeLock();
+      // タブが再表示されたら再取得
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') requestWakeLock();
+      });
+
       // --- ページ離脱時のクリーンアップ ---
       window.addEventListener('beforeunload', () => {
         if (getIsRecording()) stopRecording();
         leaveChannel();
+        if (wakeLock) wakeLock.release();
       });
     }
 
