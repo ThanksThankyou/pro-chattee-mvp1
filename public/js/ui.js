@@ -32,49 +32,65 @@ export function initScrollBehavior() {
   });
 }
 
-// パネル本文を生成（ダブルクリック編集つき）
+// パネル編集モードに入る（PC・スマホ共通）
+function enterEditMode(panel, text, isFinal, panelId) {
+  let committed = false;
+
+  const ta = document.createElement('textarea');
+  ta.classList.add('panel-edit-textarea');
+  ta.value = text;
+  panel.replaceWith(ta);
+  ta.focus();
+  ta.setSelectionRange(ta.value.length, ta.value.length);
+
+  const commit = () => {
+    if (committed) return;
+    committed = true;
+    const newText = ta.value.trim() || text;
+    const newPanel = makePanel(newText, true, panelId);
+    ta.replaceWith(newPanel);
+    if (newText !== text) {
+      window.dispatchEvent(new CustomEvent('panel:edit', {
+        detail: { panelId, newText }
+      }));
+    }
+  };
+
+  ta.addEventListener('blur', commit);
+  ta.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.isComposing && !e.shiftKey) {
+      e.preventDefault();
+      commit();
+    }
+    if (e.key === 'Escape') {
+      committed = true;
+      const restored = makePanel(text, isFinal, panelId);
+      ta.replaceWith(restored);
+    }
+  });
+}
+
+// パネル本文を生成（PC:ダブルクリック・スマホ:長押しで編集）
 function makePanel(text, isFinal, panelId) {
   const panel = document.createElement('div');
   panel.classList.add('panel');
   panel.textContent = text;
   if (!isFinal) panel.classList.add('panel-partial');
 
+  // PC：ダブルクリック
   panel.addEventListener('dblclick', () => {
-    let committed = false;
-
-    const ta = document.createElement('textarea');
-    ta.classList.add('panel-edit-textarea');
-    ta.value = text;
-    panel.replaceWith(ta);
-    ta.focus();
-    ta.setSelectionRange(ta.value.length, ta.value.length);
-
-    const commit = () => {
-      if (committed) return;
-      committed = true;
-      const newText = ta.value.trim() || text;
-      const newPanel = makePanel(newText, true, panelId);
-      ta.replaceWith(newPanel);
-      if (newText !== text) {
-        window.dispatchEvent(new CustomEvent('panel:edit', {
-          detail: { panelId, newText }
-        }));
-      }
-    };
-
-    ta.addEventListener('blur', commit);
-    ta.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && !e.isComposing && !e.shiftKey) {
-        e.preventDefault();
-        commit();
-      }
-      if (e.key === 'Escape') {
-        committed = true; // blurで二重発火しないように
-        const restored = makePanel(text, isFinal, panelId);
-        ta.replaceWith(restored);
-      }
-    });
+    enterEditMode(panel, text, isFinal, panelId);
   });
+
+  // スマホ：長押し（500ms）
+  let pressTimer = null;
+  panel.addEventListener('touchstart', () => {
+    pressTimer = setTimeout(() => {
+      enterEditMode(panel, text, isFinal, panelId);
+    }, 500);
+  }, { passive: true });
+  panel.addEventListener('touchend',  () => clearTimeout(pressTimer), { passive: true });
+  panel.addEventListener('touchmove', () => clearTimeout(pressTimer), { passive: true });
 
   return panel;
 }
