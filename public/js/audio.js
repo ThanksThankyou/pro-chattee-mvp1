@@ -35,6 +35,13 @@ export async function startRecording(appKey) {
       const float32 = e.inputBuffer.getChannelData(0);
       const pcm16 = float32ToPcm16(float32);
       sendAudioChunk(pcm16);
+
+      // RMSで発話開始を直接検出してAmiVoiceの認識遅延を補正
+      let sumSq = 0;
+      for (let i = 0; i < float32.length; i++) sumSq += float32[i] * float32[i];
+      if (Math.sqrt(sumSq / float32.length) > 0.01) {
+        window.dispatchEvent(new CustomEvent('audio:activity'));
+      }
     };
 
     isRecording = true;
