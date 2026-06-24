@@ -223,11 +223,11 @@ html, body {
 .btn-mic {
   background: var(--accent);
   color: #fff;
-  padding: 20px 40px;
+  padding: 16px 36px;
   font-size: 1.2rem;
   border-radius: 50px;
   width: 100%;
-  max-width: 300px;
+  max-width: 210px;
   border: none;
   font-family: var(--font);
   font-weight: 600;
