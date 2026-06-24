@@ -39,7 +39,7 @@ let tempBubble = null;
 let activePanelId   = null;
 let activeText      = '';
 let panelResetTimer = null;
-const PANEL_RESET_MS = 3000; // 3秒無音でパネルを「閉じる」
+const PANEL_RESET_MS = 4000; // 4秒無音でパネルを「閉じる」
 
 function resetActivePanel() {
   activePanelId = null;
