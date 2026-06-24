@@ -39,7 +39,7 @@ let tempBubble = null;
 let activePanelId   = null;
 let activeText      = '';
 let panelResetTimer = null;
-const PANEL_RESET_MS = 4000; // 4秒無音でパネルを「閉じる」
+const PANEL_RESET_MS = 6000; // 6秒無音でパネルを「閉じる」
 
 // AmiVoiceの認識遅延を補正：RMSで発話開始を検出したら即タイマーリセット
 window.addEventListener('audio:activity', () => {
