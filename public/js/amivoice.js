@@ -65,7 +65,7 @@ export async function startAmiVoice(appKey, engine = '-a-general') {
 
     const trimmedKey = appKey.trim();
     // ChatteePro Phase1: 話者区別なし（1対1・シンプル設定）
-    const wsCmd = `s 16k ${engine} authorization=${trimmedKey} segmenterProperties="powerThreshold=10000 threshold=9000"`;
+    const wsCmd = `s 16k ${engine} authorization=${trimmedKey} segmenterProperties="powerThreshold=2000 threshold=2000"`;
     ws.send(wsCmd);
     window.dispatchEvent(new CustomEvent('amivoice:start'));
   };
