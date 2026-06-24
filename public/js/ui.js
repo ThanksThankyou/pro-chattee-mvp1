@@ -34,10 +34,12 @@ export function initScrollBehavior() {
 
 // パネル編集モードに入る（PC・スマホ共通）
 function enterEditMode(panel, text, isFinal, panelId) {
+  const panelWidth = panel.offsetWidth; // 吹き出しの実際の幅を取得
   let committed = false;
 
   const ta = document.createElement('textarea');
   ta.classList.add('panel-edit-textarea');
+  ta.style.width = panelWidth + 'px'; // 吹き出しと同じ幅に設定
   ta.value = text;
   panel.replaceWith(ta);
   ta.focus();

@@ -84,14 +84,17 @@ export async function startAmiVoice(appKey, engine = '-a-general') {
       return;
     }
 
-    // 部分認識（U）→ 仮表示 ＋ 発話中はパネルを閉じない
+    // 部分認識（U）→ 発話中はパネルを閉じない
     if (msgType === 'U') {
-      if (!tempBubble) tempBubble = createTempBubble();
-      updateTempBubble(tempBubble, text);
-      // 発話継続中はタイマーをリセット（U が来ている間は新パネルを作らない）
       if (activePanelId) {
+        // 既存パネルに仮テキストをプレビュー（新しいバブルを出さない）
+        applyEdit(activePanelId, activeText + text);
         clearTimeout(panelResetTimer);
         panelResetTimer = setTimeout(resetActivePanel, PANEL_RESET_MS);
+      } else {
+        // パネルがまだない場合だけテンプバブルを使う
+        if (!tempBubble) tempBubble = createTempBubble();
+        updateTempBubble(tempBubble, text);
       }
     }
 
